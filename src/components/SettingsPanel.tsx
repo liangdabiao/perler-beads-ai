@@ -12,6 +12,7 @@ interface SettingsPanelProps {
   enableCelebration: boolean;
   onEnableCelebrationChange: (enable: boolean) => void;
   onClose: () => void;
+  onDownload?: () => void;
 }
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({
@@ -25,7 +26,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onSectionLineColorChange,
   enableCelebration,
   onEnableCelebrationChange,
-  onClose
+  onClose,
+  onDownload
 }) => {
   // 分割线颜色选项
   const sectionLineColors = [
@@ -188,10 +190,22 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
 
 
-          {/* 进度重置 */}
+          {/* 图纸下载与数据管理 */}
           <div>
-            <h3 className="text-base font-medium text-gray-800 mb-3">数据管理</h3>
+            <h3 className="text-base font-medium text-gray-800 mb-3">图纸与数据</h3>
             <div className="space-y-3">
+              {onDownload && (
+                <button 
+                  onClick={onDownload}
+                  className="w-full py-2 px-4 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm flex items-center justify-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  下载拼豆图纸
+                </button>
+              )}
+              
               <button className="w-full py-2 px-4 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors text-sm">
                 导出进度数据
               </button>

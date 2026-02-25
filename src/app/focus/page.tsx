@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { MappedPixel } from '../../utils/pixelation';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { MappedPixel, PaletteColor } from '../../utils/pixelation';
 import { 
   getAllConnectedRegions, 
   isRegionCompleted, 
@@ -18,7 +18,10 @@ import ColorPanel from '../../components/ColorPanel';
 import SettingsPanel from '../../components/SettingsPanel';
 import CelebrationAnimation from '../../components/CelebrationAnimation';
 import CompletionCard from '../../components/CompletionCard';
+import DownloadSettingsModal from '../../components/DownloadSettingsModal';
 import { getColorKeyByHex, ColorSystem } from '../../utils/colorSystemUtils';
+import { downloadImage } from '../../utils/imageDownloader';
+import { GridDownloadOptions } from '../../types/downloadTypes';
 
 interface FocusModeState {
   // 当前状态
@@ -95,6 +98,20 @@ export default function FocusMode() {
     completed: number;
   }>>([]);
 
+  // 下载功能相关状态
+  const [colorCounts, setColorCounts] = useState<{ [key: string]: { count: number; color: string } } | null>(null);
+  const [selectedColorSystem, setSelectedColorSystem] = useState<ColorSystem>('MARD');
+  const [isDownloadSettingsOpen, setIsDownloadSettingsOpen] = useState(false);
+  const [downloadOptions, setDownloadOptions] = useState<GridDownloadOptions>({
+    showGrid: true,
+    gridInterval: 10,
+    showCoordinates: true,
+    showCellNumbers: true,
+    gridLineColor: '#555555',
+    includeStats: true,
+    exportCsv: false
+  });
+
   // 计时器管理
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -131,15 +148,18 @@ export default function FocusMode() {
       try {
         const pixelData = JSON.parse(savedPixelData);
         const dimensions = JSON.parse(savedGridDimensions);
-        const colorCounts = JSON.parse(savedColorCounts);
+        const parsedColorCounts = JSON.parse(savedColorCounts);
 
         setMappedPixelData(pixelData);
         setGridDimensions(dimensions);
+        setColorCounts(parsedColorCounts);
         
-        // 设置色号系统 - 已移除未使用的状态
+        // 设置色号系统
+        const colorSystem = (savedColorSystem as ColorSystem) || 'MARD';
+        setSelectedColorSystem(colorSystem);
 
         // 计算颜色进度
-        const colors = Object.entries(colorCounts).map(([, colorData]) => {
+        const colors = Object.entries(parsedColorCounts).map(([, colorData]) => {
           const data = colorData as { color: string; count: number };
           // 通过hex值获取对应色号系统的色号
           const displayKey = getColorKeyByHex(data.color, savedColorSystem as ColorSystem || 'MARD');
@@ -173,6 +193,49 @@ export default function FocusMode() {
       window.location.href = '/';
     }
   }, []);
+
+  // hexToRgb 工具函数
+  const hexToRgb = useCallback((hex: string): { r: number; g: number; b: number } | null => {
+    const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+    const formattedHex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(formattedHex);
+    return result
+      ? {
+          r: parseInt(result[1], 16),
+          g: parseInt(result[2], 16),
+          b: parseInt(result[3], 16),
+        }
+      : null;
+  }, []);
+
+  // 构建 activeBeadPalette
+  const activeBeadPalette = useMemo((): PaletteColor[] => {
+    if (!colorCounts) return [];
+    return Object.entries(colorCounts).map(([key, data]) => ({
+      key,
+      hex: data.color,
+      rgb: hexToRgb(data.color) || { r: 0, g: 0, b: 0 }
+    }));
+  }, [colorCounts, hexToRgb]);
+
+  // 计算总珠子数
+  const totalBeadCount = useMemo(() => {
+    if (!colorCounts) return 0;
+    return Object.values(colorCounts).reduce((sum, c) => sum + c.count, 0);
+  }, [colorCounts]);
+
+  // 处理下载请求
+  const handleDownloadRequest = useCallback((options?: GridDownloadOptions) => {
+    downloadImage({
+      mappedPixelData,
+      gridDimensions,
+      colorCounts,
+      totalBeadCount,
+      options: options || downloadOptions,
+      activeBeadPalette,
+      selectedColorSystem
+    });
+  }, [mappedPixelData, gridDimensions, colorCounts, totalBeadCount, downloadOptions, activeBeadPalette, selectedColorSystem]);
 
   // 计算推荐的下一个区域
   const calculateRecommendedRegion = useCallback(() => {
@@ -562,6 +625,18 @@ export default function FocusMode() {
           enableCelebration={focusState.enableCelebration}
           onEnableCelebrationChange={(enable: boolean) => setFocusState(prev => ({ ...prev, enableCelebration: enable }))}
           onClose={() => setFocusState(prev => ({ ...prev, showSettingsPanel: false }))}
+          onDownload={() => setIsDownloadSettingsOpen(true)}
+        />
+      )}
+
+      {/* 下载设置弹窗 */}
+      {isDownloadSettingsOpen && (
+        <DownloadSettingsModal
+          isOpen={isDownloadSettingsOpen}
+          onClose={() => setIsDownloadSettingsOpen(false)}
+          options={downloadOptions}
+          onOptionsChange={setDownloadOptions}
+          onDownload={handleDownloadRequest}
         />
       )}
 
