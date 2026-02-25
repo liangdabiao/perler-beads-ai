@@ -21,7 +21,11 @@ export default function ImageCropperModal({
   const [isProcessing, setIsProcessing] = useState(false);
 
   const getCropper = () => {
-    return cropperRef.current?.cropper;
+    const ref = cropperRef.current;
+    if (ref && 'cropper' in ref) {
+      return ref.cropper;
+    }
+    return null;
   };
 
   const handleConfirm = useCallback(() => {
