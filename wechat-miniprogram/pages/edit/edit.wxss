@@ -1,4 +1,12 @@
 /* edit.wxss */
+.hidden-canvas {
+  width: 0;
+  height: 0;
+  position: absolute;
+  left: -9999rpx;
+  top: -9999rpx;
+}
+
 .loading {
   display: flex;
   justify-content: center;

@@ -5,23 +5,25 @@
     <text class="text">点击单元格进行手动编辑</text>
   </view>
 
+  <canvas class="hidden-canvas" canvas-id="tempCanvas" style="width:300px;height:300px;"></canvas>
+
   <view class="loading" wx:if="{{ loading }}">
     <text class="loading-icon">⏳</text>
     <text class="loading-text">正在处理图片...</text>
   </view>
 
   <view wx:else class="edit-area">
-    <canvas class="pixel-canvas" canvas-id="pixelCanvas" bindtap="onCanvasTap"></canvas>
+    <canvas class="pixel-canvas" canvas-id="pixelCanvas" bindtap="onCanvasTap" style="width:300px;height:225px;"></canvas>
   </view>
 
   <view class="color-palette" wx:if="{{ !loading }}">
     <text class="palette-title">颜色选择</text>
     <view class="color-list">
-      <view wx:for="{{ colorPalette }}" wx:key="{{ index }}" 
-        class="color-item" 
-        style="background-color: {{ item.color }}" 
-        bindtap="selectColor" 
-        data-color="{{ item.color }}" 
+      <view wx:for="{{ colorPalette }}" wx:key="{{ index }}"
+        class="color-item"
+        style="background-color: {{ item.color }}"
+        bindtap="selectColor"
+        data-color="{{ item.color }}"
         data-key="{{ item.key }}">
         <text class="color-key">{{ item.key }}</text>
       </view>
