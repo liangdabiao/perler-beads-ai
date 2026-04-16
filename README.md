@@ -173,7 +173,7 @@ AI功能的实现涉及以下文件：
 
 -   **前端实现**: `src/components/AIOptimizeModal.tsx` - AI优化弹窗组件
 -   **核心工具**: `src/utils/aiOptimize.ts` - AI优化相关工具函数
--   **后端API**: `src/app/api/ai-optimize/route.ts` - 调用火山引擎API的后端接口
+-   **后端API**: `functions/api/ai-optimize.ts` - Cloudflare Pages Function，调用火山引擎API
 
 ### 优势
 
@@ -249,9 +249,163 @@ AI功能的实现涉及以下文件：
     ```
 4.  在浏览器中打开 `http://localhost:3000`。
 
-## 部署
+---
 
-该项目可以轻松部署到 [Vercel](https://vercel.com/) 等支持 Next.js 的平台。
+## 部署到 Cloudflare Pages（推荐）
+
+本项目采用 **Next.js 静态导出 + Cloudflare Pages Function** 架构，所有重计算（图像像素化、颜色映射）都在浏览器端完成，服务端仅有一个轻量 API（AI优化），部署简单、免费额度完全够用。
+
+### 前置准备
+
+1. 注册 [Cloudflare 账号](https://dash.cloudflare.com/sign-up)（免费）
+2. 安装 [Node.js](https://nodejs.org/)（v18+）
+3. 本地已克隆项目并完成 `npm install`
+
+### 方式一：命令行部署（推荐）
+
+#### 第 1 步：构建项目
+
+```bash
+npm run build
+```
+
+构建完成后会在项目根目录生成 `out/` 文件夹，里面是纯静态文件（HTML/CSS/JS）。
+
+#### 第 2 步：登录 Cloudflare
+
+```bash
+npx wrangler login
+```
+
+浏览器会自动打开 Cloudflare 授权页面，点击 **Allow** 即可。
+
+#### 第 3 步：创建 Pages 项目并部署
+
+```bash
+npx wrangler pages project create perler-beads --production-branch main
+npx wrangler pages deploy out --project-name perler-beads
+```
+
+部署成功后终端会输出访问地址，格式类似：`https://perler-beads.pages.dev`
+
+#### 第 4 步：配置环境变量（AI 功能需要）
+
+如果你需要使用 AI 优化功能，需要配置火山引擎的 API 密钥：
+
+1. 打开 [Cloudflare Dashboard](https://dash.cloudflare.com/) → **Workers & Pages** → 选择 `perler-beads`
+2. 进入 **Settings** → **Environment Variables**
+3. 添加以下两个变量（选 **Production** 和 **Preview** 都勾上）：
+
+| 变量名 | 说明 |
+|--------|------|
+| `VOLC_ACCESS_KEY_ID` | 火山引擎 Access Key ID |
+| `VOLC_SECRET_ACCESS_KEY` | 火山引擎 Secret Access Key |
+
+> 如果你不需要 AI 优化功能，可以跳过此步骤。
+
+#### 第 5 步：配置官方域名重定向（可选）
+
+如果你有自己的域名并希望非官方域名自动跳转：
+
+1. 在 **Settings** → **Environment Variables** 中添加：
+   - 变量名：`NEXT_PUBLIC_OFFICIAL_DOMAIN`
+   - 变量值：`https://你的域名/`（例如 `https://liang.348349.xyz/`）
+
+2. 重新构建并部署（因为 `NEXT_PUBLIC_*` 变量在构建时注入）：
+   ```bash
+   npm run build
+   npx wrangler pages deploy out --project-name perler-beads
+   ```
+
+> **注意**：设置了此变量后，Cloudflare 提供的 `*.pages.dev` 域名会自动跳转到你配置的官方域名。如果不设置，则所有域名都能正常访问，不会跳转。
+
+#### 第 6 步：绑定自定义域名（可选）
+
+1. 进入 Cloudflare Dashboard → **Workers & Pages** → 选择 `perler-beads`
+2. **Settings** → **Custom domains** → **Add**
+3. 输入你的域名（需要域名已托管在 Cloudflare DNS 上）
+
+---
+
+### 方式二：GitHub 自动部署（推荐给持续开发）
+
+这种方式每次推送代码到 GitHub 后会自动构建部署。
+
+#### 第 1 步：推送代码到 GitHub
+
+```bash
+git init
+git add .
+git commit -m "init"
+git remote add origin https://github.com/你的用户名/perler-beads.git
+git push -u origin main
+```
+
+#### 第 2 步：在 Cloudflare Dashboard 连接 GitHub
+
+1. 打开 [Cloudflare Dashboard](https://dash.cloudflare.com/) → **Workers & Pages** → **Create**
+2. 选择 **Connect to Git**
+3. 选择你的 GitHub 仓库 `perler-beads`
+4. 配置构建设置：
+
+| 设置项 | 值 |
+|--------|-----|
+| Framework preset | `Next.js (Static)` |
+| Build command | `npm run build` |
+| Build output directory | `out` |
+
+5. 点击 **Save and Deploy**
+
+#### 第 3 步：配置环境变量
+
+在项目的 **Settings** → **Environment Variables** 中添加：
+
+| 变量名 | 说明 | 是否必须 |
+|--------|------|---------|
+| `VOLC_ACCESS_KEY_ID` | 火山引擎 Access Key ID | AI 功能必须 |
+| `VOLC_SECRET_ACCESS_KEY` | 火山引擎 Secret Access Key | AI 功能必须 |
+| `NEXT_PUBLIC_OFFICIAL_DOMAIN` | 官方域名（如 `https://liang.348349.xyz/`） | 可选 |
+
+> **重要**：`NEXT_PUBLIC_OFFICIAL_DOMAIN` 是构建时变量，修改后需要重新触发构建（在 Deployments 页面点击 Retry deployment）。
+
+---
+
+### 本地预览（模拟线上环境）
+
+如果你想在本机模拟 Cloudflare Pages 环境进行测试（包含 Pages Function）：
+
+1. 创建环境变量文件（仅用于本地，不会提交到 Git）：
+   ```bash
+   echo "VOLC_ACCESS_KEY_ID=你的key" > .dev.vars
+   echo "VOLC_SECRET_ACCESS_KEY=你的secret" >> .dev.vars
+   ```
+
+2. 启动本地预览：
+   ```bash
+   npm run pages:dev
+   ```
+
+3. 在浏览器打开 `http://127.0.0.1:8788`
+
+---
+
+### 日常更新部署
+
+修改代码后，只需两步：
+
+```bash
+npm run build
+npx wrangler pages deploy out --project-name perler-beads
+```
+
+### 常用命令速查
+
+| 命令 | 说明 |
+|------|------|
+| `npm run dev` | 本地开发（Next.js 开发服务器） |
+| `npm run build` | 构建静态文件到 `out/` 目录 |
+| `npm run pages:dev` | 本地模拟 Cloudflare Pages 环境（含 API Function） |
+| `npm run pages:deploy` | 部署到 Cloudflare Pages |
 
 ## 未来可能的改进
 

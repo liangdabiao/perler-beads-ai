@@ -1083,14 +1083,16 @@ export default function Home() {
     if (typeof window !== 'undefined') {
       const currentUrl = window.location.href;
       const currentHostname = window.location.hostname;
-      const targetDomain = 'https://liang.348349.xyz/';
+      const targetDomain = process.env.NEXT_PUBLIC_OFFICIAL_DOMAIN;
+      if (!targetDomain) return;
       
-      // 排除localhost和127.0.0.1等本地开发环境
-      const isLocalhost = currentHostname === 'localhost' || 
-                         currentHostname === '127.0.0.1' || 
+      // 排除localhost和127.0.0.1等本地开发环境，以及Cloudflare Pages域名
+      const isLocalhost = currentHostname === 'localhost' ||
+                         currentHostname === '127.0.0.1' ||
                          currentHostname.startsWith('192.168.') ||
                          currentHostname.startsWith('10.') ||
-                         currentHostname.endsWith('.local');
+                         currentHostname.endsWith('.local') ||
+                         currentHostname.endsWith('.pages.dev');
       
       // 检查当前URL是否不是目标域名，且不是本地开发环境
       if (!currentUrl.startsWith(targetDomain) && !isLocalhost) {
@@ -2170,13 +2172,6 @@ export default function Home() {
                     应用数字
                   </button>
                   <button
-                    onClick={handleAutoRemoveBackground}
-                    disabled={!mappedPixelData || !gridDimensions}
-                    className="inline-flex items-center justify-center h-9 px-3 text-sm rounded-md border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                  >
-                    一键去背景
-                  </button>
-                  <button
                     onClick={handleAIOptimizeOpen}
                     disabled={!originalImageSrc}
                     className="inline-flex items-center justify-center h-9 px-3 text-sm rounded-md border border-purple-200 dark:border-purple-700 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200 hover:bg-purple-100 dark:hover:bg-purple-800/40 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
@@ -2185,6 +2180,13 @@ export default function Home() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                     AI优化
+                  </button>
+                  <button
+                    onClick={handleAutoRemoveBackground}
+                    disabled={!mappedPixelData || !gridDimensions}
+                    className="inline-flex items-center justify-center h-9 px-3 text-sm rounded-md border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-800/40 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  >
+                    一键去背景
                   </button>
                 </div>
 

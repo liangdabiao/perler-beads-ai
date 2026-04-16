@@ -464,3 +464,77 @@ npx wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat
 - [ ] 11. `npm run deploy:cf` 部署成功
 - [ ] 12. 在线验证所有功能正常
 - [ ] 13. 绑定自定义域名（可选）
+
+
+
+
+
+
+
+
+CF部署：
+
+● 构建成功，所有页面都静态导出了。out/ 目录已生成。
+
+● 所有改造完成。总结一下做了什么：
+
+  改造完成
+
+  ┌───────────────────────────────────────────────────────────────────────────────┬──────┐
+  │                                     步骤                                      │ 状态 │
+  ├───────────────────────────────────────────────────────────────────────────────┼──────┤
+  │ 移除 sharp、@vercel/analytics、next-pwa                                       │ Done │
+  ├───────────────────────────────────────────────────────────────────────────────┼──────┤
+  │ 安装 wrangler                                                                 │ Done │
+  ├───────────────────────────────────────────────────────────────────────────────┼──────┤
+  │ layout.tsx 移除 <Analytics />                                                 │ Done │
+  ├───────────────────────────────────────────────────────────────────────────────┼──────┤
+  │ next.config.ts 重写：output: 'export' + images: { unoptimized: true }         │ Done │
+  ├───────────────────────────────────────────────────────────────────────────────┼──────┤
+  │ API 路由迁移：src/app/api/ai-optimize/route.ts → functions/api/ai-optimize.ts │ Done │
+  ├───────────────────────────────────────────────────────────────────────────────┼──────┤
+  │ tsconfig.json 排除 functions/ 目录                                            │ Done │
+  ├───────────────────────────────────────────────────────────────────────────────┼──────┤
+  │ package.json 添加 pages:dev / pages:deploy scripts                            │ Done │
+  ├───────────────────────────────────────────────────────────────────────────────┼──────┤
+  │ .gitignore 添加 .dev.vars 和 .open-next/                                      │ Done │
+  ├───────────────────────────────────────────────────────────────────────────────┼──────┤
+  │ npm run build 静态导出验证通过                                                │ Done │
+  └───────────────────────────────────────────────────────────────────────────────┴──────┘
+
+  后续使用
+
+  本地开发预览（含 Pages Function）：
+  # 创建 .dev.vars 文件填入密钥
+  echo "VOLC_ACCESS_KEY_ID=xxx" > .dev.vars
+  echo "VOLC_SECRET_ACCESS_KEY=xxx" >> .dev.vars
+
+  npm run pages:dev
+
+  部署到 Cloudflare Pages：
+  npm run build && npm run pages:deploy
+  或直接将 GitHub 仓库连接到 Cloudflare Pages Dashboard，设置构建命令为 npm run build，输出目录为 out。环境变量在
+  Dashboard 的 Settings → Environment Variables 中设置。
+
+
+  ❯ 请问 api 的 cf function功能也应该部署了吗？
+
+● 是的，wrangler pages deploy out 会同时部署：
+
+  - 静态文件：out/ 目录中的 HTML/CSS/JS
+  - Pages Functions：functions/ 目录中的 serverless 函数（即你的 api/ai-optimize）
+
+  不需要额外操作，Pages 会自动识别 functions/ 目录并部署为 Functions。out/ 里没有的路径（如
+  /api/ai-optimize）会自动路由到对应的 Pages Function 处理。
+
+  部署前记得在 Cloudflare Dashboard（Pages 项目 → Settings → Environment Variables）中添加 VOLC_ACCESS_KEY_ID 和
+  VOLC_SECRET_ACCESS_KEY 两个环境变量，因为 .dev.vars 只用于本地开发。
+
+
+  ● 已修复。现在改为读取 NEXT_PUBLIC_OFFICIAL_DOMAIN 环境变量，未设置则完全跳过重定向。
+
+  使用方式：在 .env.local 或构建环境中设置：
+  NEXT_PUBLIC_OFFICIAL_DOMAIN=https://liang.348349.xyz/
+
+  不设置则不会重定向，CF Pages 临时域名可以正常访问。
+  
