@@ -2,6 +2,19 @@
 
 因为市面上的拼豆软件差强人意 ，所以我基于开源项目：https://github.com/Zippland/perler-beads ， 我加上AI优化了项目，AI辅助优化图片功能，写了一个专门生成拼豆图纸的网站。 经过大量测试，我觉得已经可以达到 一键生成拼豆图纸了！
 
+特别感谢佬友支持： [linux.do](https://linux.do/t/topic/1660924/)
+
+### 部署方法：
+1，完全免费的，无需任何费用。利用了cloudflare page + 即梦 免费api
+2，部署方法简单，无需任何配置。 可以cloudflare命令一键部署，也可以基于github代码拉取部署，也可以自行手动部署。
+3，部署完成后，即可在浏览器中访问。可以cloudflare免费域名，也可以绑定自己域名。
+
+即梦 免费api （智能绘图）申请地址： https://console.volcengine.com/ai/ability/detail/1
+
+### 免费小程序
+基于类似的功能，我已经完成一个不错的小程序，免费提供给大家使用。
+
+
 ## 展示案例
 
 核心就是： ai制作图纸  ，关键就是颜色尽可能少，颗粒尽可能少，各种各样图纸风格都兼容，同时表达尽可能清楚，这就是我的ai能够做到。
@@ -303,7 +316,7 @@ npx wrangler pages deploy out --project-name perler-beads
 
 > 如果你不需要 AI 优化功能，可以跳过此步骤。
 
-#### 第 5 步：配置官方域名重定向（可选）
+#### 第 5 步：配置自有域名重定向（可选）
 
 如果你有自己的域名并希望非官方域名自动跳转：
 
@@ -407,17 +420,6 @@ npx wrangler pages deploy out --project-name perler-beads
 | `npm run pages:dev` | 本地模拟 Cloudflare Pages 环境（含 API Function） |
 | `npm run pages:deploy` | 部署到 Cloudflare Pages |
 
-## 未来可能的改进
-
-*   **颜色映射算法**: 探索如 K-Means 聚类或使用 CIEDE2000 (Delta E) 颜色距离进行映射，可能获得更优的视觉效果（但计算成本更高）。
-*   **抖动 (Dithering)**: 添加抖动选项（如 Floyd-Steinberg），在有限调色板下模拟更丰富的颜色过渡。
-*   **性能优化**: 对非常大的图片或高粒度设置，考虑使用 Web Workers 进行后台计算。
-*   **更多导出格式**: 支持导出为 PDF、SVG 等格式，以满足不同用户的需求。
-*   **批量处理**: 支持批量上传和处理多张图片。
-*   **模板库**: 提供预设的拼豆模板库，方便用户直接使用。
-*   **社区功能**: 允许用户分享自己创建的拼豆设计。
-*   **移动应用**: 开发配套的移动应用，提供更便捷的使用体验。
-*   **更多色号系统**: 支持更多品牌和地区的拼豆色号系统。
 
 ## 许可证
 
