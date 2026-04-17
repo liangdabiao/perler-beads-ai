@@ -7,6 +7,12 @@
 ### 部署方法：
 1，完全免费的，无需任何费用。利用了cloudflare page + 即梦 免费api
 2，部署方法简单，无需任何配置。 可以cloudflare命令一键部署，也可以基于github代码拉取部署，也可以自行手动部署。
+cloudflare命令一键部署命令参考：
+```
+npm run pages:dev
+npm run build
+npm run pages:deploy
+```
 3，部署完成后，即可在浏览器中访问。可以cloudflare免费域名，也可以绑定自己域名。
 
 即梦 免费api （智能绘图）申请地址： https://console.volcengine.com/ai/ability/detail/1
