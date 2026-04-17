@@ -19,6 +19,7 @@ npm run pages:deploy
 
 ### 免费小程序
 基于类似的功能，我已经完成一个不错的小程序，免费提供给大家使用。
+https://github.com/liangdabiao/perlerBeadsApplet
 
 
 ## 展示案例
