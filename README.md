@@ -15,6 +15,11 @@ npm run pages:deploy
 ```
 3，部署完成后，即可在浏览器中访问。可以cloudflare免费域名，也可以绑定自己域名。
 
+### 非cloudflare部署 - 静态部署
+1,如果你想在非cloudflare环境部署，例如部署在自己服务器等等，也提供了一个独立的分支no-backend：
+https://github.com/liangdabiao/perler-beads-ai/tree/no-backend
+2，详细参考：[非cloudflare部署 - 静态部署](docs/静态部署方法配置指南.md)
+
 即梦 免费api （智能绘图）申请地址： https://console.volcengine.com/ai/ability/detail/1
 
 ### 免费小程序
