@@ -1,6 +1,12 @@
 // AI图片优化工具函数
 
+import { callVolcEngineAI } from '@/lib/volcEngineClient';
+
 const DEFAULT_PROMPT = '图片修改为：chibi画风，背景白底。pixel art style, 16-bit, retro game aesthetic, sharp focus, high contrast, clean lines, detailed pixel art, masterpiece, best quality';
+
+const VOLC_ACCESS_KEY_ID = process.env.NEXT_PUBLIC_VOLC_ACCESS_KEY_ID;
+const VOLC_SECRET_ACCESS_KEY = process.env.NEXT_PUBLIC_VOLC_SECRET_ACCESS_KEY;
+const IS_STATIC_DEPLOYMENT = process.env.NEXT_PUBLIC_IS_STATIC_DEPLOYMENT === 'true';
 
 export interface AIOptimizeOptions {
   customPrompt?: string;
@@ -135,15 +141,31 @@ export async function optimizeImageWithAI(
   try {
     const { customPrompt, onProgress } = options;
 
-    // 更新进度
     onProgress?.(10);
 
-    // 将图片转换为base64
     const base64Image = await imageToBase64(imageSrc);
 
     onProgress?.(30);
 
-    // 调用API
+    if (IS_STATIC_DEPLOYMENT && VOLC_ACCESS_KEY_ID && VOLC_SECRET_ACCESS_KEY) {
+      const result = await callVolcEngineAI(
+        base64Image,
+        customPrompt || DEFAULT_PROMPT,
+        VOLC_ACCESS_KEY_ID,
+        VOLC_SECRET_ACCESS_KEY,
+        onProgress
+      );
+
+      if (result.success && result.imageUrl) {
+        return {
+          success: true,
+          imageUrl: result.imageUrl
+        };
+      } else {
+        throw new Error(result.error || 'Unknown error');
+      }
+    }
+
     const response = await fetch('/api/ai-optimize', {
       method: 'POST',
       headers: {
@@ -158,13 +180,11 @@ export async function optimizeImageWithAI(
     onProgress?.(80);
 
     if (!response.ok) {
-      // 尝试解析JSON错误，如果失败则使用文本
       let errorMessage: string;
       try {
         const errorData = await response.json();
         errorMessage = errorData.message || `API request failed: ${response.status}`;
       } catch {
-        // 如果不是JSON，尝试获取文本
         const errorText = await response.text();
         errorMessage = errorText || `API request failed: ${response.status}`;
       }
