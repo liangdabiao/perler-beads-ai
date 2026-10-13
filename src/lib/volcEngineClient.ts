@@ -1,11 +1,6 @@
 // 火山引擎即梦 AI 客户端直接调用
 // 用于静态部署场景，直接从浏览器调用火山引擎 API
 
-interface Env {
-  VOLC_ACCESS_KEY_ID: string;
-  VOLC_SECRET_ACCESS_KEY: string;
-}
-
 const VOLC_API_HOST = 'visual.volcengineapi.com';
 const VOLC_API_REGION = 'cn-north-1';
 const VOLC_API_SERVICE = 'cv';
@@ -24,9 +19,10 @@ function toHex(buf: Uint8Array): string {
 }
 
 async function hmac(key: Uint8Array, data: string): Promise<Uint8Array> {
+  const keyBuffer = new Uint8Array(key).buffer as ArrayBuffer;
   const cryptoKey = await crypto.subtle.importKey(
     'raw',
-    key,
+    keyBuffer,
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign']
@@ -45,7 +41,7 @@ function uriEscape(str: string): string {
     return encodeURIComponent(str)
       .replace(/[^A-Za-z0-9_.~\-%]+/g, (c) => c)
       .replace(/[*]/g, (ch) => `%${ch.charCodeAt(0).toString(16).toUpperCase()}`);
-  } catch (e) {
+  } catch {
     return '';
   }
 }

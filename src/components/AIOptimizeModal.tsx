@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
+import Image from 'next/image';
 import { optimizeImageWithAI, downloadImageAsDataURL } from '../utils/aiOptimize';
 
 interface AIOptimizeModalProps {
@@ -127,11 +128,12 @@ export default function AIOptimizeModal({
             {/* 原图 */}
             <div className="space-y-2">
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">原图</h3>
-              <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-                <img
+              <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 relative">
+                <Image
                   src={imageSrc}
                   alt="Original"
-                  className="w-full h-full object-contain"
+                  fill
+                  className="object-contain"
                 />
               </div>
             </div>
@@ -141,11 +143,14 @@ export default function AIOptimizeModal({
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">AI优化后</h3>
               <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 flex items-center justify-center">
                 {previewImage ? (
-                  <img
-                    src={previewImage}
-                    alt="Optimized"
-                    className="w-full h-full object-contain"
-                  />
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={previewImage}
+                      alt="Optimized"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
                 ) : isProcessing ? (
                   <div className="text-center p-4">
                     <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
